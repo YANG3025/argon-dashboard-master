@@ -13,7 +13,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 -->
 <?php
-require_once("../pages/db_connect1.php");
+require_once("../db_connect.php");
 $sqlAll = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name
 FROM article 
 JOIN user ON article.user_id=user.id
