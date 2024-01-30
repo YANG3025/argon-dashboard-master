@@ -27,9 +27,8 @@ if (isset($_GET["search"])) {
           FROM article 
           JOIN user ON article.user_id=user.id
           JOIN article_category ON article.category_id=article_category.id
-          WHERE (article.title LIKE '%$search%' OR user.name LIKE '%$search%') AND article.valid=1
-          LIMIT $startIndex, $perPage";
-} elseif (isset($_GET["p"])) {
+          WHERE (article.title LIKE '%$search%' OR user.name LIKE '%$search%') AND article.valid=1";
+} elseif (isset($_GET["p"]) || $_GET["search"] = "") {
   $p = $_GET["p"];
   $startIndex = ($p - 1) * $perPage; 
   $sql = "SELECT article.*, user.name AS user_name,        article_category.name AS category_name
