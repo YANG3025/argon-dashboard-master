@@ -10,7 +10,7 @@ $resultAll = $conn->query($sqlAll);
 $articleTotalCount = $resultAll->num_rows;
 $perPage = 5;
 $pageCount = ceil($articleTotalCount / $perPage);
-
+$p = 1;
 
 if (isset($_GET["order"])) {
   $order = $_GET["order"];
@@ -30,8 +30,8 @@ if (isset($_GET["search"])) {
           WHERE (article.title LIKE '%$search%' OR user.name LIKE '%$search%') AND article.valid=1";
 } elseif (isset($_GET["p"]) || $_GET["search"] = "") {
   $p = $_GET["p"];
-  $startIndex = ($p - 1) * $perPage; 
-  $sql = "SELECT article.*, user.name AS user_name,        article_category.name AS category_name
+  $startIndex = ($p - 1) * $perPage;
+  $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name
          FROM article 
          JOIN user ON article.user_id=user.id
          JOIN article_category ON article.category_id=article_category.id
@@ -39,14 +39,15 @@ if (isset($_GET["search"])) {
          $orderString
          LIMIT $startIndex, $perPage";
 } else {
-  $p = 1; 
-  $order = 1; 
+  $p = 1;
+  $order = 1;
   $orderString = "ORDER BY id ASC";
   $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name
          FROM article 
          JOIN user ON article.user_id=user.id
          JOIN article_category ON article.category_id=article_category.id
          WHERE article.valid=1
+         $orderString
          LIMIT $perPage";
 }
 
@@ -84,6 +85,8 @@ $rowsCount = $result->num_rows;
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Bootstrap JavaScript (Popper.js and Bootstrap JS) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="..." crossorigin="anonymous"></script>
 
 </head>
 
@@ -297,8 +300,6 @@ $rowsCount = $result->num_rows;
                         <th class="text-secondary text-s font-weight-bolder opacity-7">發文者</th>
                         <th class="text-secondary text-s font-weight-bolder opacity-7">更新時間</th>
                         <th class="text-secondary text-center opacity-7">檢視</th>
-                        <th class="text-secondary text-center opacity-7">修改</th>
-                        <th class="text-secondary text-center opacity-7">刪除</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -324,21 +325,90 @@ $rowsCount = $result->num_rows;
                         <td>
                           <p class="text-xs text-secondary mb-0"><?= $article["update"] ?></p>
                         </td>
-                        <td class="align-middle text-center">
-                          <a href="javascript:;" class="text-secondary font-weight-bold text-m" data-toggle="tooltip" data-original-title="Edit user">
-                            <i class="fa-solid fa-eye fa-fw"></i>
-                          </a>
+                        <td><button class="btn btn-primary" data-bs-toggle="modal"
+                              data-bs-target="#staticBackdrop<?= $article["id"] ?>">
+                              <i class="fa-solid fa-eye fa-fw text-white"></i></button>
+
+                            <!-- MODAL模型 -->
+                            <div class="modal fade" id="staticBackdrop<?= $article["id"] ?>" data-bs-backdrop="static"
+                              data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+                              aria-hidden="true">
+                              <div class="modal-dialog modal-xl">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="staticBackdropLabel">
+                                      <?= $article["id"] ?>
+                                    </h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                      aria-label="Close"></button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <div class="container">
+
+                                      <div class="row">
+                                        <div class="col">
+                                          <table class="table table-bordered">
+                                            <tr>
+                                              <th>文章標題</th>
+                                              <td>
+                                                <?= $article["title"] ?>
+                                              </td>
+                                            </tr>
+                                            <tr>
+                                              <th>分類</th>
+                                              <td>
+                                                <?= $article["category_name"] ?>
+                                              </td>
+                                            </tr>
+                                            <tr>
+                                              <th>文章內文</th>
+                                              <td>
+                                                <?= $article["content"] ?>
+                                              </td>
+                                            </tr>
+                                            <tr>
+                                              <th>圖片</th>
+                                              <td>
+                                                
+                                              </td>
+                                            </tr>
+                                            <tr>
+                                              <th>發文者</th>
+                                              <td>
+                                                <?= $article["user_name"] ?>
+                                              </td>
+                                            </tr>
+                                            <tr>
+                                              <th>更新時間</th>
+                                              <td>
+                                                <?= $article["update"] ?>
+                                              </td>
+                                            </tr>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="modal-footer d-flex justify-content-lg-between">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                                    <div>
+                                      <!-- 修改 -->
+                                      <button class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#editModal<?= $article["id"] ?>">
+                                        修改
+                                      </button>
+                                      <!-- 刪除 -->
+                                      <button class="btn btn-danger" data-bs-toggle="modal"
+                                        data-bs-target="#confirmModal<?= $article["id"] ?>" role="button"><i
+                                          class="fa-solid fa-trash fa-fw"></i></button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                         </td>
-                        <td class="align-middle text-center">
-                          <a href="javascript:;" class="text-secondary font-weight-bold text-m" data-toggle="tooltip" data-original-title="Edit user">
-                            <i class="fa-solid fa-pen-to-square fa-fw"></i>
-                          </a>
-                        </td>
-                        <td class="align-middle text-center">
-                          <a href="javascript:;" class="text-secondary font-weight-bold text-m" data-toggle="tooltip" data-original-title="Edit user">
-                            <i class="fa-solid fa-trash-can fa-fw"></i>
-                          </a>
-                        </td>
+
                       </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -348,19 +418,16 @@ $rowsCount = $result->num_rows;
           </div>
         </div>
       </div>
-      <?php if (!isset($_GET["search"])) : ?>
         <!-- 分頁 -->
         <nav aria-label="Page navigation example">
           <ul class="pagination">
             <?php for ($i = 1; $i <= $pageCount; $i++) : ?>
-              <!-- 當下的頁數highlight(算是一種class之間要空格) -->
               <li class="page-item <?php if ($i == $p) echo "active" ?>"><a class="page-link" href="articles.php?order=<?= $order ?>&p=<?= $i ?>"><?= $i ?></a></li>
             <?php endfor; ?>
           </ul>
         </nav>
         <!-- 分頁結束 -->
       <?php endif; ?>
-    <?php endif; ?>
     <footer class="footer pt-3  ">
       <div class="container-fluid">
         <div class="row align-items-center justify-content-lg-between">
