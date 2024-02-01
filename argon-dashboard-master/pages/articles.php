@@ -1,9 +1,10 @@
 <?php
 require_once("../db_connect.php");
-$sqlAll = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name
+$sqlAll = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
 FROM article 
 JOIN user ON article.user_id=user.id
 JOIN article_category ON article.category_id=article_category.id
+LEFT JOIN article_img ON article.img_id = article_img.id
 ORDER BY article.id";
 $resultAll = $conn->query($sqlAll);
 
@@ -23,18 +24,20 @@ if (isset($_GET["order"])) {
 
 if (isset($_GET["search"])) {
   $search = $_GET["search"];
-  $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name
-          FROM article 
-          JOIN user ON article.user_id=user.id
-          JOIN article_category ON article.category_id=article_category.id
+  $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
+  FROM article 
+  JOIN user ON article.user_id=user.id
+  JOIN article_category ON article.category_id=article_category.id
+  LEFT JOIN article_img ON article.img_id = article_img.id
           WHERE (article.title LIKE '%$search%' OR user.name LIKE '%$search%') AND article.valid=1";
 } elseif (isset($_GET["p"]) || $_GET["search"] = "") {
   $p = $_GET["p"];
   $startIndex = ($p - 1) * $perPage;
-  $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name
-         FROM article 
-         JOIN user ON article.user_id=user.id
-         JOIN article_category ON article.category_id=article_category.id
+  $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
+  FROM article 
+  JOIN user ON article.user_id=user.id
+  JOIN article_category ON article.category_id=article_category.id
+  LEFT JOIN article_img ON article.img_id = article_img.idd
          WHERE article.valid=1 
          $orderString
          LIMIT $startIndex, $perPage";
@@ -42,10 +45,11 @@ if (isset($_GET["search"])) {
   $p = 1;
   $order = 1;
   $orderString = "ORDER BY id ASC";
-  $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name
-         FROM article 
-         JOIN user ON article.user_id=user.id
-         JOIN article_category ON article.category_id=article_category.id
+  $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
+  FROM article 
+  JOIN user ON article.user_id=user.id
+  JOIN article_category ON article.category_id=article_category.id
+  LEFT JOIN article_img ON article.img_id = article_img.id
          WHERE article.valid=1
          $orderString
          LIMIT $perPage";
@@ -356,7 +360,11 @@ $rowsCount = $result->num_rows;
                                             </tr>
                                             <tr>
                                               <th>圖片</th>
-                                              <td></td>
+                                              <td>
+                                                <div class="ratio ratio-1x1" style="max-width: 200px;">
+                                                  <img src="/picture/<?= $article["filename"] ?>" alt="">
+                                                </div>
+                                              </td>
                                             </tr>
                                             <tr>
                                               <th>發文者</th>
