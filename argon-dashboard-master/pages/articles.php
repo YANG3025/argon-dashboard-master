@@ -287,7 +287,6 @@ $rowsCount = $result->num_rows;
                 </div>
               </div>
             </div>
-
             <div class="card-body px-0 pt-0 pb-2">
               <div class="table-responsive p-0">
                 <?php if ($rowsCount > 0) : ?>
@@ -303,131 +302,180 @@ $rowsCount = $result->num_rows;
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <?php
-                        $rows = $result->fetch_all(MYSQLI_ASSOC);
-
-                        foreach ($rows as $article) :
-                        ?>
-                      <tr>
-                        <td>
-                          <p class="text-xs text-secondary mb-0 text-center"><?= $article["id"] ?></p>
-                        </td>
-                        <td>
-                          <p class="text-xs text-secondary mb-0"><?= $article["title"] ?></p>
-                        </td>
-                        <td>
-                          <p class="text-xs text-secondary mb-0"><?= $article["category_name"] ?></p>
-                        </td>
-                        <td>
-                          <p class="text-xs text-secondary mb-0 text-center"><?= $article["user_name"] ?></p>
-                        </td>
-                        <td>
-                          <p class="text-xs text-secondary mb-0"><?= $article["update"] ?></p>
-                        </td>
-                        <td><button class="btn btn-primary" data-bs-toggle="modal"
-                              data-bs-target="#staticBackdrop<?= $article["id"] ?>">
-                              <i class="fa-solid fa-eye fa-fw text-white"></i></button>
+                      <?php
+                      $rows = $result->fetch_all(MYSQLI_ASSOC);
+                      foreach ($rows as $article) :
+                      ?>
+                        <tr>
+                          <td>
+                            <p class="text-xs text-secondary mb-0 text-center"><?= $article["id"] ?></p>
+                          </td>
+                          <td>
+                            <p class="text-xs text-secondary mb-0"><?= $article["title"] ?></p>
+                          </td>
+                          <td>
+                            <p class="text-xs text-secondary mb-0"><?= $article["category_name"] ?></p>
+                          </td>
+                          <td>
+                            <p class="text-xs text-secondary mb-0 text-center"><?= $article["user_name"] ?></p>
+                          </td>
+                          <td>
+                            <p class="text-xs text-secondary mb-0"><?= $article["update"] ?></p>
+                          </td>
+                          <td>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop<?= $article["id"] ?>">
+                              <i class="fa-solid fa-eye fa-fw text-white"></i>
+                            </button>
 
                             <!-- MODAL模型 -->
-                            <div class="modal fade" id="staticBackdrop<?= $article["id"] ?>" data-bs-backdrop="static"
-                              data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
-                              aria-hidden="true">
+                            <div class="modal fade" id="staticBackdrop<?= $article["id"] ?>" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                               <div class="modal-dialog modal-xl">
                                 <div class="modal-content">
+                                  <!-- Modal Header -->
                                   <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="staticBackdropLabel">
-                                      <?= $article["id"] ?>
-                                    </h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                      aria-label="Close"></button>
+                                    <h1 class="modal-title fs-5" id="staticBackdropLabel"><?= $article["id"] ?></h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                   </div>
+                                  <!-- Modal Body -->
                                   <div class="modal-body">
                                     <div class="container">
-
                                       <div class="row">
                                         <div class="col">
                                           <table class="table table-bordered">
                                             <tr>
                                               <th>文章標題</th>
-                                              <td>
-                                                <?= $article["title"] ?>
-                                              </td>
+                                              <td><?= $article["title"] ?></td>
                                             </tr>
                                             <tr>
                                               <th>分類</th>
-                                              <td>
-                                                <?= $article["category_name"] ?>
-                                              </td>
+                                              <td><?= $article["category_name"] ?></td>
                                             </tr>
                                             <tr>
                                               <th>文章內文</th>
-                                              <td>
-                                                <?= $article["content"] ?>
-                                              </td>
+                                              <td class="text-wrap"><?= $article["content"] ?></td>
                                             </tr>
                                             <tr>
                                               <th>圖片</th>
-                                              <td>
-                                                
-                                              </td>
+                                              <td></td>
                                             </tr>
                                             <tr>
                                               <th>發文者</th>
-                                              <td>
-                                                <?= $article["user_name"] ?>
-                                              </td>
+                                              <td><?= $article["user_name"] ?></td>
                                             </tr>
                                             <tr>
                                               <th>更新時間</th>
-                                              <td>
-                                                <?= $article["update"] ?>
-                                              </td>
+                                              <td><?= $article["update"] ?></td>
                                             </tr>
                                           </table>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
-
+                                  <!-- Modal Footer -->
                                   <div class="modal-footer d-flex justify-content-lg-between">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
                                     <div>
                                       <!-- 修改 -->
-                                      <button class="btn btn-primary" data-bs-toggle="modal"
-                                        data-bs-target="#editModal<?= $article["id"] ?>">
-                                        修改
-                                      </button>
+                                      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal<?= $article["id"] ?>">修改</button>
                                       <!-- 刪除 -->
-                                      <button class="btn btn-danger" data-bs-toggle="modal"
-                                        data-bs-target="#confirmModal<?= $article["id"] ?>" role="button"><i
-                                          class="fa-solid fa-trash fa-fw"></i></button>
+                                      <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal<?= $article["id"] ?>" role="button"><i class="fa-solid fa-trash fa-fw"></i></button>
                                     </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                        </td>
 
-                      </tr>
-                    <?php endforeach; ?>
+                            <!-- 刪除按鈕 -->
+                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal<?= $article["id"] ?>" role="button">
+                              <i class="fa-solid fa-trash fa-fw"></i>
+                            </button>
+                            <!-- 按修改會跳出來的東西 (完成) -->
+                            <div class="modal fade" id="editModal<?= $article["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                              <div class="modal-dialog">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">修改資料</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  </div>
+                                  <!-- Form for editing user details -->
+                                  <form action="doEditArticle.php" method="post">
+                                    <div class="modal-body">
+                                      <input type="hidden" name="id" value="<?= $article["id"] ?>">
+                                      <table class="table table-bordered">
+                                        <tr>
+                                          <th>文章標題</th>
+                                          <td>
+                                            <input type="text" class="form-control" name="editTitle" value="<?= $article["title"] ?>">
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <th>分類</th>
+                                          <td>
+                                            official announcemen
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <th>內文</th>
+                                          <td>
+                                            <textarea class="form-control" name="editContent" rows="4"><?= $article["content"] ?> </textarea>
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <th>照片</th>
+                                          <td><input type="file" class="form-control" name="editPhoto" value=" "></td>
+                                        </tr>
+                                      </table>
+                                    </div>
+                                    <div class="modal-footer">
+                                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                      <button type="submit" class="btn btn-danger">確認</button>
+                                    </div>
+                                  </form>
+                                </div>
+                              </div>
+                            </div>
+                            <!-- 按刪除會跳出來的東西 -->
+                            <div class="modal fade" id="confirmModal<?= $article["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                              <div class="modal-dialog">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">刪除使用者</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  </div>
+                                  <div class="modal-body">
+                                    確認刪除?
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                    <a type="button" href="doDeleteArticle.php?id=<?= $article["id"] ?>" class="btn btn-danger" role="button">確認</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
                     </tbody>
+
                   </table>
               </div>
             </div>
+          <?php endif; ?>
           </div>
         </div>
       </div>
-        <!-- 分頁 -->
-        <nav aria-label="Page navigation example">
-          <ul class="pagination">
-            <?php for ($i = 1; $i <= $pageCount; $i++) : ?>
-              <li class="page-item <?php if ($i == $p) echo "active" ?>"><a class="page-link" href="articles.php?order=<?= $order ?>&p=<?= $i ?>"><?= $i ?></a></li>
-            <?php endfor; ?>
-          </ul>
-        </nav>
-        <!-- 分頁結束 -->
-      <?php endif; ?>
+    </div>
+    <!-- 分頁 -->
+    <nav aria-label="Page navigation example">
+      <ul class="pagination">
+        <?php for ($i = 1; $i <= $pageCount; $i++) : ?>
+          <li class="page-item <?php if ($i == $p) echo "active" ?>"><a class="page-link" href="articles.php?order=<?= $order ?>&p=<?= $i ?>"><?= $i ?></a></li>
+        <?php endfor; ?>
+      </ul>
+    </nav>
+    <!-- 分頁結束 -->
+
     <footer class="footer pt-3  ">
       <div class="container-fluid">
         <div class="row align-items-center justify-content-lg-between">
