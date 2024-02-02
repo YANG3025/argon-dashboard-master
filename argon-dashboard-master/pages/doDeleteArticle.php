@@ -11,4 +11,4 @@ if ($conn->query($sql) === TRUE) {
 }
 $conn->close();
 
-// header("location: articles.php");
+ header("location: articles.php");

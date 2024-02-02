@@ -28,12 +28,10 @@ if (isset($_GET["order"])) {
 if (isset($_GET["search"])) {
   $search = $_GET["search"];
   $sql = "SELECT * FROM user WHERE name LIKE '%$search%'  AND valid=1 ";
-
 } elseif (isset($_GET["p"]) || $_GET["search"] = "") {
   $p = $_GET["p"];
   $startIndex = ($p - 1) * $perPage;
   $sql = "SELECT * FROM user WHERE valid=1  $orderString LIMIT $startIndex,$perPage ";
-
 } else {
 
   $order = 1;
@@ -81,7 +79,9 @@ if (isset($_GET["search"])) {
 
   <!-- 介面開始 -->
 
-  <div class="min-height-300 bg-success position-absolute w-100"></div>
+  <div class="min-height-300 bg-primary position-absolute w-100"></div>
+
+
   <aside
     class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4 "
     id="sidenav-main">
@@ -108,7 +108,7 @@ if (isset($_GET["search"])) {
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active" href="./pages/tables.html">
+          <a class="nav-link active" href="../pages/tables.php">
             <div
               class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
               <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i>
@@ -117,7 +117,7 @@ if (isset($_GET["search"])) {
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " href="./pages/billing.html">
+          <a class="nav-link " href="../pages/product-list.php">
             <div
               class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
               <i class="ni ni-credit-card text-success text-sm opacity-10"></i>
@@ -261,7 +261,7 @@ if (isset($_GET["search"])) {
 
           <form action="" method="get">
 
-            <div class="input-group mb-3 align-items-start">
+            <div class="input-group mb-3 align-items-center">
               <input type="text" class="form-control" placeholder="Search...." aria-label="Serach Name" name="search"
                 aria-describedby="button-addon2" <?php if (isset($_GET["search"])):
                   $searchValue = $_GET["search"];
@@ -325,12 +325,7 @@ if (isset($_GET["search"])) {
                 <table class="table align-items-center mb-0">
                   <thead>
                     <tr>
-                      <!-- <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Author</th>
-                      
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Function</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Employed</th>
-                      <th class="text-secondary opacity-7"></th> -->
+
                       <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">ID</th>
 
                       <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7 ">名字</th>
@@ -366,6 +361,9 @@ if (isset($_GET["search"])) {
                             <div class="d-flex px-2 py-1">
                               <div>
                                 <img src="../assets/img/team-2.jpg" class="avatar avatar-sm me-3" alt="user1">
+                                <img src="../images/<?= $user["img"] ?>" class="avatar avatar-sm me-3"
+                                  alt="<?= $user["name"] ?>">
+
                               </div>
                               <div class="d-flex flex-column justify-content-center">
                                 <h6 class="mb-0 text-sm">
@@ -415,6 +413,8 @@ if (isset($_GET["search"])) {
 
                             </a> -->
 
+                            <!-- 查看使用者詳細資料 -->
+
                             <button class="btn btn-primary" data-bs-toggle="modal"
                               data-bs-target="#staticBackdrop<?= $user["id"] ?>">
                               <i class="fa-solid fa-eye fa-fw text-white"></i></button>
@@ -436,55 +436,56 @@ if (isset($_GET["search"])) {
                                     <div class="container">
 
                                       <div class="row">
-                                        <div class="col-4">
-                                          <img src="../assets/img/team-2.jpg" class="avatar avatar-sm me-3" alt="user1">
+                                        <div class="col-4 ">
+                                          <img src="../images/<?= $user["img"] ?>" alt="<?= $user["name"] ?>" width="300px"
+                                            height="300px" class="mt-3">
                                         </div>
                                         <div class="col-8">
                                           <table class="table table-bordered">
 
-                                            <tr>
+                                            <tr class="border-end">
                                               <th>ID</th>
                                               <td>
                                                 <?= $user["id"] ?>
                                               </td>
                                             </tr>
-                                            <tr>
+                                            <tr class="border-end">
                                               <th>名字</th>
                                               <td>
                                                 <?= $user["name"] ?>
                                               </td>
                                             </tr>
-                                            <tr>
+                                            <tr class="border-end">
                                               <th>信箱</th>
                                               <td>
                                                 <?= $user["email"] ?>
                                               </td>
                                             </tr>
-                                            <tr>
+                                            <tr class="border-end">
                                               <th>生日</th>
                                               <td>
                                                 <?= $user["birthday"] ?>
                                               </td>
                                             </tr>
-                                            <tr>
+                                            <tr class="border-end">
                                               <th>手機號碼</th>
                                               <td>
                                                 <?= $user["phone"] ?>
                                               </td>
                                             </tr>
-                                            <tr>
+                                            <tr class="border-end">
                                               <th>地址</th>
                                               <td>
                                                 <?= $user["address"] ?>
                                               </td>
                                             </tr>
-                                            <tr>
+                                            <tr class="border-end">
                                               <th>信用卡號</th>
                                               <td>
                                                 <?= $user["credit_number"] ?>
                                               </td>
                                             </tr>
-                                            <tr>
+                                            <tr class="border-end">
                                               <th>註冊時間</th>
                                               <td>
                                                 <?= $user["created_at"] ?>
@@ -514,88 +515,108 @@ if (isset($_GET["search"])) {
                                 </div>
                               </div>
                             </div>
-
-                            <!-- 刪除按鈕 -->
-
-                            <button class="btn btn-danger" data-bs-toggle="modal"
-                              data-bs-target="#confirmModal<?= $user["id"] ?>" role="button">
-                              <i class="fa-solid fa-trash fa-fw"></i></button>
-
-
-
                             <!-- 按修改會跳出來的東西 (完成)-->
                             <div class="modal fade" id="editModal<?= $user["id"] ?>" tabindex="-1"
                               aria-labelledby="exampleModalLabel" aria-hidden="true">
-                              <div class="modal-dialog">
-                                <div class="modal-content">
-                                  <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">修改資料</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                      aria-label="Close"></button>
-                                  </div>
+                              <div class="modal-dialog modal-xl">
+                                <form action="doEditUser.php" method="post">
+                                  <div class="modal-content">
+                                    <div class="modal-header">
+                                      <h1 class="modal-title fs-5" id="exampleModalLabel">修改資料</h1>
+                                      <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                      <div class="container">
+                                        <div class="row">
 
-                                  <!-- Form for editing user details -->
-                                  <form action="doEditUser.php" method="post">
-                                    <input type="hidden" name="user_id" value="<?= $user["id"] ?>">
+                                          <div class="col-4 ">
+                                            <img src="../images/<?= $user["img"] ?>" alt="<?= $user["name"] ?>"
+                                              width="300px" height="300px" class="mt-3">
+                                          </div>
 
-                                    <table class="table table-bordered">
+                                          <div class="col-8">
+                                            <input type="hidden" class="form-control" name="editId"
+                                              value="<?= $user["id"] ?>">
 
-                                        <input type="hidden" class="form-control" name="editId" value="<?= $user["id"] ?>">
 
-                                        <tr>
-                                          <th>名字</th>
-                                          <td>
-                                            <input type="text" class="form-control" name="editName"
-                                              value="<?= $user["name"] ?>">
+                                            <!-- Form for editing user details -->
 
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th>信箱</th>
-                                          <td>
-                                            <input type="text" class="form-control" name="editEmail"
-                                              value="<?= $user["email"] ?>">
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th>生日</th>
-                                          <td>
-                                            <input type="date" class="form-control" name="editBirthday"
-                                              value="<?= $user["birthday"] ?>">
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th>手機號碼</th>
-                                          <td><input type="text" class="form-control" name="editPhone"
-                                              value=" <?= $user["phone"] ?>">
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th>地址</th>
-                                          <td>
-                                            <input type="text" class="form-control" name="editAddress"
-                                              value="<?= $user["address"] ?>">
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th>信用卡號</th>
-                                          <td>
-                                            <input type="text" class="form-control" name="editCreditNumber"
-                                              value="<?= $user["credit_number"] ?>">
-                                          </td>
-                                        </tr>
 
-                                      </table>
 
+                                            <table class="table table-bordered">
+
+
+
+
+
+
+
+                                              <tr class="border-end">
+                                                <th>名字</th>
+                                                <td>
+                                                  <input type="text" class="form-control" name="editName"
+                                                    value="<?= $user["name"] ?>">
+
+                                                </td>
+                                              </tr>
+                                              <tr class="border-end">
+                                                <th>信箱</th>
+                                                <td>
+                                                  <input type="text" class="form-control" name="editEmail"
+                                                    value="<?= $user["email"] ?>">
+                                                </td>
+                                              </tr>
+                                              <tr class="border-end">
+                                                <th>生日</th>
+                                                <td>
+                                                  <input type="date" class="form-control" name="editBirthday"
+                                                    value="<?= $user["birthday"] ?>">
+                                                </td>
+                                              </tr>
+                                              <tr class="border-end">
+                                                <th>手機號碼</th>
+                                                <td><input type="text" class="form-control" name="editPhone"
+                                                    value=" <?= $user["phone"] ?>">
+                                                </td>
+                                              </tr>
+                                              <tr class="border-end">
+                                                <th>地址</th>
+                                                <td>
+                                                  <input type="text" class="form-control" name="editAddress"
+                                                    value="<?= $user["address"] ?>">
+                                                </td>
+                                              </tr>
+                                              <tr class="border-end">
+                                                <th>信用卡號</th>
+                                                <td>
+                                                  <input type="text" class="form-control" name="editCreditNumber" style="width: 100%;"
+                                                    value="<?= $user["credit_number"] ?>">
+                                                </td>
+                                              </tr>
+
+                                            </table>
+
+
+
+
+
+                                          </div>
+                                        </div>
+
+                                      </div>
+                                    </div>
                                     <div class="modal-footer">
                                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                                       <button type="submit" class="btn btn-danger">確認</button>
                                     </div>
-                                  </form>
-                                </div>
-                              </div>
-                            </div>
 
+                                  </div>
+                                </form>
+                              </div>
+
+
+                            </div>
                             <!-- 按刪除會跳出來的東西 -->
                             <div class="modal fade" id="confirmModal<?= $user["id"] ?>" tabindex="-1"
                               aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -617,6 +638,17 @@ if (isset($_GET["search"])) {
                                 </div>
                               </div>
                             </div>
+
+
+                            <!-- 刪除按鈕 -->
+
+                            <button class="btn btn-danger" data-bs-toggle="modal"
+                              data-bs-target="#confirmModal<?= $user["id"] ?>" role="button">
+                              <i class="fa-solid fa-trash fa-fw"></i></button>
+
+
+
+
 
                           </td>
                         </tr>

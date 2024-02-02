@@ -1,10 +1,21 @@
 <?php
 require_once("../db_connect.php");
+
+$sqlCategory = "SELECT *FROM article_category ";
+$resultCategory = $conn->query($sqlCategory);
+$rowsCategory = $resultCategory->fetch_all(MYSQLI_ASSOC);
+$rowsCount = $resultCategory->num_rows;
+
+$cate_filter = isset($_GET["cate"]) && !empty($_GET["cate"]) ? "WHERE category_id = " . $_GET["cate"] : "";
+
+
+
 $sqlAll = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
 FROM article 
 JOIN user ON article.user_id=user.id
 JOIN article_category ON article.category_id=article_category.id
 LEFT JOIN article_img ON article.img_id = article_img.id
+$cate_filter
 ORDER BY article.id";
 $resultAll = $conn->query($sqlAll);
 
@@ -37,7 +48,7 @@ if (isset($_GET["search"])) {
   FROM article 
   JOIN user ON article.user_id=user.id
   JOIN article_category ON article.category_id=article_category.id
-  LEFT JOIN article_img ON article.img_id = article_img.idd
+  LEFT JOIN article_img ON article.img_id = article_img.id
          WHERE article.valid=1 
          $orderString
          LIMIT $startIndex, $perPage";
@@ -259,6 +270,17 @@ $rowsCount = $result->num_rows;
             <div class="card-header pb-0">
               <div class="d-flex justify-content-between">
                 <h4>文章列表</h4>
+                <div class="dropdown">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                    類別
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                    <?php foreach ($rowsCategory as $category) : ?>
+                      <li><a class="dropdown-item" href="articles.php?cate=<?= $category["id"] ?>" onclick="updateDropdownTextAndInput('<?= $category["name"] ?>')">
+                          <?= $category["name"] ?></a></li>
+                    <?php endforeach ?>
+                  </ul>
+                </div>
                 <div>
                   新增
                   <a name="" id="" class="btn btn-primary" href="add-article.php" role="button">
@@ -294,14 +316,14 @@ $rowsCount = $result->num_rows;
             <div class="card-body px-0 pt-0 pb-2">
               <div class="table-responsive p-0">
                 <?php if ($rowsCount > 0) : ?>
-                  <table class="table align-items-center mb-0 table-bordered">
+                  <table class="table align-items-center mb-0 table-bordered text-md">
                     <thead>
                       <tr>
-                        <th class="text-secondary text-s font-weight-bolder opacity-7">#</th>
-                        <th class="text-secondary text-s font-weight-bolder opacity-7">標題</th>
-                        <th class="text-secondary text-s font-weight-bolder opacity-7">分類</th>
-                        <th class="text-secondary text-s font-weight-bolder opacity-7">發文者</th>
-                        <th class="text-secondary text-s font-weight-bolder opacity-7">更新時間</th>
+                        <th class="text-secondary font-weight-bolder opacity-7">#</th>
+                        <th class="text-secondary font-weight-bolder opacity-7">標題</th>
+                        <th class="text-secondary font-weight-bolder opacity-7">分類</th>
+                        <th class="text-secondary font-weight-bolder opacity-7">發文者</th>
+                        <th class="text-secondary font-weight-bolder opacity-7">更新時間</th>
                         <th class="text-secondary text-center opacity-7">檢視</th>
                       </tr>
                     </thead>
@@ -312,19 +334,19 @@ $rowsCount = $result->num_rows;
                       ?>
                         <tr>
                           <td>
-                            <p class="text-xs text-secondary mb-0 text-center"><?= $article["id"] ?></p>
+                            <p class="text-secondary mb-0 text-center"><?= $article["id"] ?></p>
                           </td>
                           <td>
-                            <p class="text-xs text-secondary mb-0"><?= $article["title"] ?></p>
+                            <p class=" text-secondary mb-0"><?= $article["title"] ?></p>
                           </td>
                           <td>
-                            <p class="text-xs text-secondary mb-0"><?= $article["category_name"] ?></p>
+                            <p class=" text-secondary mb-0"><?= $article["category_name"] ?></p>
                           </td>
                           <td>
-                            <p class="text-xs text-secondary mb-0 text-center"><?= $article["user_name"] ?></p>
+                            <p class=" text-secondary mb-0 text-center"><?= $article["user_name"] ?></p>
                           </td>
                           <td>
-                            <p class="text-xs text-secondary mb-0"><?= $article["update"] ?></p>
+                            <p class="text-secondary mb-0"><?= $article["update"] ?></p>
                           </td>
                           <td>
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop<?= $article["id"] ?>">
@@ -361,10 +383,13 @@ $rowsCount = $result->num_rows;
                                             <tr>
                                               <th>圖片</th>
                                               <td>
-                                                <div class="ratio ratio-1x1" style="max-width: 200px;">
-                                                  <img src="/picture/<?= $article["filename"] ?>" alt="">
-                                                </div>
+                                                <?php if (isset($article["filename"])) : ?>
+                                                  <div class="ratio ratio-1x1" style="max-width: 200px;">
+                                                    <img src="../picture/<?= $article["filename"] ?>" alt="">
+                                                  </div>
+                                                <?php endif ?>
                                               </td>
+
                                             </tr>
                                             <tr>
                                               <th>發文者</th>
@@ -384,19 +409,16 @@ $rowsCount = $result->num_rows;
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
                                     <div>
                                       <!-- 修改 -->
-                                      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal<?= $article["id"] ?>">修改</button>
-                                      <!-- 刪除 -->
-                                      <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal<?= $article["id"] ?>" role="button"><i class="fa-solid fa-trash fa-fw"></i></button>
+                                      <?php if ($article["category_id"] == 1) : ?>
+                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal<?= $article["id"] ?>">修改</button>
+                                        <!-- 刪除 -->
+                                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal<?= $article["id"] ?>" role="button"><i class="fa-solid fa-trash fa-fw"></i></button>
+                                      <?php endif ?>
                                     </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-
-                            <!-- 刪除按鈕 -->
-                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal<?= $article["id"] ?>" role="button">
-                              <i class="fa-solid fa-trash fa-fw"></i>
-                            </button>
                             <!-- 按修改會跳出來的東西 (完成) -->
                             <div class="modal fade" id="editModal<?= $article["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                               <div class="modal-dialog">
@@ -406,7 +428,7 @@ $rowsCount = $result->num_rows;
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                   </div>
                                   <!-- Form for editing user details -->
-                                  <form action="doEditArticle.php" method="post">
+                                  <form action="doEditArticle.php" method="post" enctype="multipart/form-data">
                                     <div class="modal-body">
                                       <input type="hidden" name="id" value="<?= $article["id"] ?>">
                                       <table class="table table-bordered">
@@ -430,7 +452,14 @@ $rowsCount = $result->num_rows;
                                         </tr>
                                         <tr>
                                           <th>照片</th>
-                                          <td><input type="file" class="form-control" name="editPhoto" value=" "></td>
+                                          <td>
+                                            <?php if (isset($article["filename"])) : ?>
+                                              <div class="ratio ratio-1x1" style="max-width: 200px;">
+                                                <img src="../picture/<?= $article["filename"] ?>" alt="">
+                                              </div>
+                                            <?php endif ?>
+                                            <input type="file" class="form-control mt-3" name="pic" value="<?= $article["filename"] ?>">
+                                          </td>
                                         </tr>
                                       </table>
                                     </div>
@@ -442,6 +471,12 @@ $rowsCount = $result->num_rows;
                                 </div>
                               </div>
                             </div>
+                            <!-- 刪除按鈕 -->
+
+                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal<?= $article["id"] ?>" role="button">
+                              <i class="fa-solid fa-trash fa-fw"></i>
+                            </button>
+
                             <!-- 按刪除會跳出來的東西 -->
                             <div class="modal fade" id="confirmModal<?= $article["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                               <div class="modal-dialog">
@@ -596,6 +631,11 @@ $rowsCount = $result->num_rows;
   <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
   <script>
+    function updateDropdownTextAndInput(text) {
+      // 更新下拉菜單按鈕文字
+      document.getElementById('dropdownMenuButton1').innerText = text;
+      event.preventDefault();
+    }
     var win = navigator.platform.indexOf('Win') > -1;
     if (win && document.querySelector('#sidenav-scrollbar')) {
       var options = {
