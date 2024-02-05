@@ -44,8 +44,9 @@ if ($_FILES["pic"]["error"] == 0) {
         echo "图片移动失败!";
     }
 }
+$now = date('Y-m-d H:i:s');
 
-$sql = "UPDATE article SET title='$title' ,content='$content',img_id='$img_id' WHERE id='$id'";
+$sql = "UPDATE article SET title='$title' ,content='$content',img_id='$img_id',`update`= '$now'  WHERE id='$id'";
 if ($conn->query($sql) === TRUE) {
     // echo "更新成功";
 } else {
