@@ -8,7 +8,7 @@ $rowsCount = $resultCategory->num_rows;
 
 $cate_filter = isset($_GET["cate"]) && !empty($_GET["cate"]) ? "WHERE category_id = " . $_GET["cate"] : "";
 
-
+// 修改
 
 $sqlAll = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
 FROM article 
@@ -18,11 +18,10 @@ LEFT JOIN article_img ON article.img_id = article_img.id
 $cate_filter
 ORDER BY article.id";
 $resultAll = $conn->query($sqlAll);
-
 $articleTotalCount = $resultAll->num_rows;
-$perPage = 5;
+$perPage = 10;
 $pageCount = ceil($articleTotalCount / $perPage);
-$p = 1;
+
 
 if (isset($_GET["order"])) {
   $order = $_GET["order"];
@@ -33,43 +32,133 @@ if (isset($_GET["order"])) {
   }
 }
 
-if (isset($_GET["search"])) {
-  $search = $_GET["search"];
-  $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
-  FROM article 
-  JOIN user ON article.user_id=user.id
-  JOIN article_category ON article.category_id=article_category.id
-  LEFT JOIN article_img ON article.img_id = article_img.id
-          WHERE (article.title LIKE '%$search%' OR user.name LIKE '%$search%') AND article.valid=1";
+if(isset($_GET["cate"]) && !empty($_GET["cate"])){
+  $cate = intval($_GET["cate"]);
+  $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name, article_img.filename AS filename
+    FROM article 
+    JOIN user ON article.user_id=user.id
+    JOIN article_category ON article.category_id=article_category.id
+    LEFT JOIN article_img ON article.img_id = article_img.id
+    WHERE category_id = ? AND article.valid=1
+   ";
+    
+  
+  // 使用预处理语句
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("i", $cate); // "i" 表示参数为整数类型
+  $stmt->execute();
+}
+elseif(isset($_GET["search"])) {
+  $search = "%" . $_GET["search"] . "%"; // 添加通配符来匹配搜索字符串的任意位置
+  $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name, article_img.filename AS filename
+    FROM article 
+    JOIN user ON article.user_id=user.id
+    JOIN article_category ON article.category_id=article_category.id
+    LEFT JOIN article_img ON article.img_id = article_img.id
+    WHERE (article.title LIKE ? OR user.name LIKE ?) AND article.valid=1";
+
+  // 使用预处理语句
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("ss", $search, $search); // "s" 表示参数为字符串类型
+  $stmt->execute();
 } elseif (isset($_GET["p"]) || $_GET["search"] = "") {
   $p = $_GET["p"];
   $startIndex = ($p - 1) * $perPage;
-  $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
-  FROM article 
-  JOIN user ON article.user_id=user.id
-  JOIN article_category ON article.category_id=article_category.id
-  LEFT JOIN article_img ON article.img_id = article_img.id
-         WHERE article.valid=1 
-         $orderString
-         LIMIT $startIndex, $perPage";
+  $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name, article_img.filename AS filename
+    FROM article 
+    JOIN user ON article.user_id=user.id
+    JOIN article_category ON article.category_id=article_category.id
+    LEFT JOIN article_img ON article.img_id = article_img.id
+    WHERE article.valid=1 
+    $orderString
+    LIMIT ?, ?";
+  
+  // 使用预处理语句
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("ii", $startIndex, $perPage); // "i" 表示参数为整数类型
+  $stmt->execute();
 } else {
   $p = 1;
   $order = 1;
   $orderString = "ORDER BY id ASC";
-  $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
-  FROM article 
-  JOIN user ON article.user_id=user.id
-  JOIN article_category ON article.category_id=article_category.id
-  LEFT JOIN article_img ON article.img_id = article_img.id
-         WHERE article.valid=1
-         $orderString
-         LIMIT $perPage";
+  $sql = "SELECT article.*, user.name AS user_name, article_category.name AS category_name, article_img.filename AS filename
+    FROM article 
+    JOIN user ON article.user_id=user.id
+    JOIN article_category ON article.category_id=article_category.id
+    LEFT JOIN article_img ON article.img_id = article_img.id
+    WHERE article.valid=1
+    $orderString
+    LIMIT ?";
+  
+  // 使用预处理语句
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("i", $perPage); // "i" 表示参数为整数类型
+  $stmt->execute();
 }
 
-
-$result = $conn->query($sql);
+// 获取查询结果
+$result = $stmt->get_result();
 $rowsCount = $result->num_rows;
-// if (isset($_GET["search"])) { 
+
+// 关闭预处理语句
+$stmt->close();
+
+
+// if(isset($_GET["cate"]) && !empty($_GET["cate"])){
+//   $cate = intval($_GET["cate"]);
+//   $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
+//     FROM article 
+//     JOIN user ON article.user_id=user.id
+//     JOIN article_category ON article.category_id=article_category.id
+//     LEFT JOIN article_img ON article.img_id = article_img.id
+//     WHERE  category_id =? AND article.valid=1";
+// }
+// elseif(isset($_GET["search"])) {
+//   $search = $_GET["search"];
+//   $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
+//     FROM article 
+//     JOIN user ON article.user_id=user.id
+//     JOIN article_category ON article.category_id=article_category.id
+//     LEFT JOIN article_img ON article.img_id = article_img.id
+//     WHERE (article.title LIKE '%$search%' OR user.name LIKE '%$search%') AND article.valid=1";
+// } elseif (isset($_GET["p"]) || $_GET["search"] = "") {
+//   $p = $_GET["p"];
+//   $startIndex = ($p - 1) * $perPage;
+//   $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
+//     FROM article 
+//     JOIN user ON article.user_id=user.id
+//     JOIN article_category ON article.category_id=article_category.id
+//     LEFT JOIN article_img ON article.img_id = article_img.id
+//     WHERE article.valid=1 
+//     $orderString
+//     LIMIT $startIndex, $perPage";
+// } else {
+//   $p = 1;
+//   $order = 1;
+//   $orderString = "ORDER BY id ASC";
+//   $sql = "SELECT article.* ,user.name  AS user_name ,article_category.name  AS category_name, article_img.filename AS filename
+//     FROM article 
+//     JOIN user ON article.user_id=user.id
+//     JOIN article_category ON article.category_id=article_category.id
+//     LEFT JOIN article_img ON article.img_id = article_img.id
+//     WHERE article.valid=1
+//     $orderString
+//     LIMIT $perPage";
+  
+// }
+// $result = $conn->query($sql);
+//   $rowsCount = $result->num_rows;
+
+
+// $pageCount = ceil($articleTotalCount / $perPage);
+
+
+
+
+
+
+
+// if (isset($_GET["search"])&& $_GET["search"]!="") { 
 //   $rowsCount = $result->num_rows;
 // } 
 // else { 
@@ -107,30 +196,31 @@ $rowsCount = $result->num_rows;
 
 <body class="g-sidenav-show   bg-gray-100">
   <div class="min-height-300 bg-primary position-absolute w-100"></div>
-  <aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4 " id="sidenav-main">
+  <aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4 z-index-0" id="sidenav-main ">
     <div class="sidenav-header">
       <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
       <a class="navbar-brand m-0" href=" https://demos.creative-tim.com/argon-dashboard/pages/dashboard.html " target="_blank">
         <img src="../assets/img/logo-ct-dark.png" class="navbar-brand-img h-100" alt="main_logo">
-        <span class="ms-1 font-weight-bold">MIDTERM PROJECT</span>
+        <span class="ms-1 font-weight-bold">城市生機</span>
       </a>
     </div>
     <hr class="horizontal dark mt-0">
     <div class=" w-auto " id="sidenav-collapse-main">
       <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link active" href="./pages/dashboard.html">
+        <!-- <li class="nav-item">
+          <a class="nav-link" href="./pages/dashboard.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
               <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
             </div>
             <span class="nav-link-text ms-1">主頁面
             </span>
           </a>
-        </li>
+        </li> -->
         <li class="nav-item">
           <a class="nav-link " href="./pages/tables.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i>
+              <i class="fa-solid fa-user text-dark text-sm opacity-10 fa-fw"></i>
+              <!-- <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i> -->
             </div>
             <span class="nav-link-text ms-1">會員管理/註冊</span>
           </a>
@@ -138,7 +228,8 @@ $rowsCount = $result->num_rows;
         <li class="nav-item">
           <a class="nav-link " href="./pages/billing.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-credit-card text-success text-sm opacity-10"></i>
+              <i class="fa-sharp fa-solid fa-leaf text-dark text-sm opacity-10 fa-fw"></i>
+              <!-- <i class="ni ni-credit-card text-success text-sm opacity-10"></i> -->
             </div>
             <span class="nav-link-text ms-1">商品管理</span>
           </a>
@@ -146,15 +237,17 @@ $rowsCount = $result->num_rows;
         <li class="nav-item">
           <a class="nav-link " href="./pages/virtual-reality.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-app text-info text-sm opacity-10"></i>
+              <i class="fa-solid fa-table-list text-dark text-sm opacity-10 fa-fw"></i>
+              <!-- <i class="ni ni-app text-info text-sm opacity-10"></i> -->
             </div>
             <span class="nav-link-text ms-1">商品類別管理</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " href="./pages/rtl.html">
+          <a class="nav-link active" href="./pages/rtl.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-world-2 text-danger text-sm opacity-10"></i>
+              <i class="fa-solid fa-message text-dark text-sm opacity-10 fa-fw"></i>
+              <!-- <i class="ni ni-world-2 text-danger text-sm opacity-10"></i> -->
             </div>
             <span class="nav-link-text ms-1">文章管理</span>
           </a>
@@ -162,7 +255,8 @@ $rowsCount = $result->num_rows;
         <li class="nav-item">
           <a class="nav-link " href="./pages/rtl.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-world-2 text-danger text-sm opacity-10"></i>
+              <i class="fa-solid fa-store text-dark text-sm opacity-10 fa-fw"></i>
+              <!-- <i class="ni ni-world-2 text-danger text-sm opacity-10"></i> -->
             </div>
             <span class="nav-link-text ms-1">訂單管理</span>
           </a>
@@ -170,7 +264,8 @@ $rowsCount = $result->num_rows;
         <li class="nav-item">
           <a class="nav-link " href="./pages/rtl.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-world-2 text-danger text-sm opacity-10"></i>
+              <i class="fa-solid fa-user-tie text-dark text-sm opacity-10 fa-fw"></i>
+              <!-- <i class="ni ni-world-2 text-danger text-sm opacity-10"></i> -->
             </div>
             <span class="nav-link-text ms-1">講師管理</span>
           </a>
@@ -178,7 +273,8 @@ $rowsCount = $result->num_rows;
         <li class="nav-item">
           <a class="nav-link " href="./pages/rtl.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-world-2 text-danger text-sm opacity-10"></i>
+              <i class="fa-solid fa-graduation-cap text-dark text-sm opacity-10 fa-fw"></i>
+              <!-- <i class="ni ni-world-2 text-danger text-sm opacity-10"></i> -->
             </div>
             <span class="nav-link-text ms-1">課程管理</span>
           </a>
@@ -186,7 +282,8 @@ $rowsCount = $result->num_rows;
         <li class="nav-item">
           <a class="nav-link " href="./pages/rtl.html">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-world-2 text-danger text-sm opacity-10"></i>
+              <i class="fa-solid fa-ticket-simple text-dark text-sm opacity-10 fa-fw"></i>
+              <!-- <i class="ni ni-world-2 text-danger text-sm opacity-10"></i> -->
             </div>
             <span class="nav-link-text ms-1">優惠券管理</span>
           </a>
@@ -221,7 +318,7 @@ $rowsCount = $result->num_rows;
         </li>
       </ul>
     </div>
-
+    
   </aside>
   <main class="main-content position-relative border-radius-lg ">
     <!-- Navbar -->
@@ -270,17 +367,6 @@ $rowsCount = $result->num_rows;
             <div class="card-header pb-0">
               <div class="d-flex justify-content-between">
                 <h4>文章列表</h4>
-                <div class="dropdown">
-                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                    類別
-                  </button>
-                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                    <?php foreach ($rowsCategory as $category) : ?>
-                      <li><a class="dropdown-item" href="articles.php?cate=<?= $category["id"] ?>" onclick="updateDropdownTextAndInput('<?= $category["name"] ?>')">
-                          <?= $category["name"] ?></a></li>
-                    <?php endforeach ?>
-                  </ul>
-                </div>
                 <div>
                   新增
                   <a name="" id="" class="btn btn-primary" href="add-article.php" role="button">
@@ -288,11 +374,30 @@ $rowsCount = $result->num_rows;
                   </a>
                 </div>
               </div>
+              <div class="py-2">
+                <ul class="nav nav-tabs">
+                  <li class="nav-item">
+                    <a class="nav-link  <?php if (!isset($_GET["cate"])) echo "active"; ?> " aria-current="page" href="articles.php">全部</a>
+                  </li>
+                  <?php foreach ($rowsCategory as $catedory) : ?>
+                    <li class="nav-item">
+                      <a class="nav-link 
+                    <?php if (isset($_GET["cate"]) && $_GET["cate"] == $catedory["id"]) echo "active"; ?>" aria-current="page" href="articles.php?cate=<?= $catedory["id"] ?>"><?= $catedory["name"] ?></a>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+              </div>
               <div class="col">
+                <?php if (isset($_GET["search"]) && $_GET["search"] != "") :; ?>
+                  <div class="col-auto">
+                    <a name="" id="" class="btn btn-primary" href="articles.php" role="button"><i class="fa-solid fa-arrow-left fa-fw"></i></a>
+                  </div>
+                <?php endif; ?>
                 <form action="" method="get">
-                  <div class="input-group">
+
+                  <div class="input-group mb-3">
                     <input style="height: 41px;" type="search" class="form-control box-sizing inline-block" placeholder="搜尋" aria-label="Recipient's username" aria-describedby="button-addon2" name="search" <?php if (isset($_GET["search"])) : $searchValue = $_GET["search"]; ?> value="<?= $searchValue ?>" <?php endif; ?>>
-                    <button class="btn btn-primary" type="search" id="button-addon2"><i class="fa-solid fa-magnifying-glass fa-fw"></i></button>
+                    <button class="btn btn-primary" type="submit" id="button-addon2"><i class="fa-solid fa-magnifying-glass fa-fw"></i></button>
                   </div>
                 </form>
               </div>
@@ -302,15 +407,17 @@ $rowsCount = $result->num_rows;
                   <?= $rowsCount ?>
                   筆
                 </div>
+                <?php if (!isset($_GET["cate"]) ) :; ?>
                 <div class="d-flex">
                   <div class="me-2">排序</div>
                   <div class="btn-group">
-                    <a class="btn btn-primary <?php if ($order == 1) echo "active" ?>" href="articles.php?order=1&p=<?= $p ?>"><i class="fa-solid fa-arrow-down-1-9 fa-fw"></i></a>
-                    <a class="btn btn-primary <?php if ($order == 2) echo "active" ?>" href="articles.php?order=2&p=<?= $p ?>"><i class="fa-solid fa-arrow-down-9-1 fa-fw"></i></a>
+                    <a class="btn btn-primary <?php if ($order == 1) echo "active" ?>" href="articles.php?order=1&p=<?= $p ?>"><i class="fa-solid fa-arrow-down-short-wide fa-fw"></i></a>
+                    <a class="btn btn-primary <?php if ($order == 2) echo "active" ?>" href="articles.php?order=2&p=<?= $p ?>"><i class="fa-solid fa-arrow-down-wide-short fa-fw"></i></a>
                     <!-- <a class="btn btn-primary <?php if ($order == 3) echo "active" ?>" href="articles.php?order=3&p=<?= $p ?>"><i class="fa-solid fa-arrow-down-a-z fa-fw"></i></a>
                     <a class="btn btn-primary <?php if ($order == 4) echo "active" ?>" href="articles.php?order=4&p=<?= $p ?>"><i class="fa-solid fa-arrow-down-z-a fa-fw"></i></a> -->
                   </div>
                 </div>
+                <?php endif ;?>
               </div>
             </div>
             <div class="card-body px-0 pt-0 pb-2">
@@ -324,7 +431,7 @@ $rowsCount = $result->num_rows;
                         <th class="text-secondary font-weight-bolder opacity-7">分類</th>
                         <th class="text-secondary font-weight-bolder opacity-7">發文者</th>
                         <th class="text-secondary font-weight-bolder opacity-7">更新時間</th>
-                        <th class="text-secondary text-center opacity-7">檢視</th>
+                        <th class="text-secondary text-center opacity-7"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -349,9 +456,7 @@ $rowsCount = $result->num_rows;
                             <p class="text-secondary mb-0"><?= $article["update"] ?></p>
                           </td>
                           <td>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop<?= $article["id"] ?>">
-                              <i class="fa-solid fa-eye fa-fw text-white"></i>
-                            </button>
+                          
 
                             <!-- MODAL模型 -->
                             <div class="modal fade" id="staticBackdrop<?= $article["id"] ?>" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -471,12 +576,11 @@ $rowsCount = $result->num_rows;
                                 </div>
                               </div>
                             </div>
-                            <!-- 刪除按鈕 -->
-
-                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal<?= $article["id"] ?>" role="button">
-                              <i class="fa-solid fa-trash fa-fw"></i>
-                            </button>
-
+                            <!-- 按鈕 -->
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop<?= $article["id"] ?>"><i class="fa-solid fa-eye fa-fw"></i></button>
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#editModal<?= $article["id"] ?>"><i class="fa-solid fa-pen-to-square fa-fw"></i></button>
+                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal<?= $article["id"] ?>" role="button"><i class="fa-solid fa-trash fa-fw"></i></button>
+                            
                             <!-- 按刪除會跳出來的東西 -->
                             <div class="modal fade" id="confirmModal<?= $article["id"] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                               <div class="modal-dialog">
@@ -510,47 +614,22 @@ $rowsCount = $result->num_rows;
       </div>
     </div>
     <!-- 分頁 -->
+    <?php if ((!isset($_GET["search"]) || $_GET["search"] == "") && !isset($_GET["cate"])) : ?>
     <nav aria-label="Page navigation example">
       <ul class="pagination">
         <?php for ($i = 1; $i <= $pageCount; $i++) : ?>
-          <li class="page-item <?php if ($i == $p) echo "active" ?>"><a class="page-link" href="articles.php?order=<?= $order ?>&p=<?= $i ?>"><?= $i ?></a></li>
+          <li class="page-item <?php if ($i == $p) echo "active" ?>">
+            <a class="page-link" href="articles.php?order=<?= $order ?>&p=<?= $i ?>"><?= $i ?></a>
+
+          </li>
+
         <?php endfor; ?>
       </ul>
     </nav>
+    <?php endif ?>
     <!-- 分頁結束 -->
 
-    <footer class="footer pt-3  ">
-      <div class="container-fluid">
-        <div class="row align-items-center justify-content-lg-between">
-          <div class="col-lg-6 mb-lg-0 mb-4">
-            <div class="copyright text-center text-sm text-muted text-lg-start">
-              © <script>
-                document.write(new Date().getFullYear())
-              </script>,
-              made with <i class="fa fa-heart"></i> by
-              <a href="https://www.creative-tim.com" class="font-weight-bold" target="_blank">Creative Tim</a>
-              for a better web.
-            </div>
-          </div>
-          <div class="col-lg-6">
-            <ul class="nav nav-footer justify-content-center justify-content-lg-end">
-              <li class="nav-item">
-                <a href="https://www.creative-tim.com" class="nav-link text-muted" target="_blank">Creative Tim</a>
-              </li>
-              <li class="nav-item">
-                <a href="https://www.creative-tim.com/presentation" class="nav-link text-muted" target="_blank">About Us</a>
-              </li>
-              <li class="nav-item">
-                <a href="https://www.creative-tim.com/blog" class="nav-link text-muted" target="_blank">Blog</a>
-              </li>
-              <li class="nav-item">
-                <a href="https://www.creative-tim.com/license" class="nav-link pe-0 text-muted" target="_blank">License</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </footer>
+
     </div>
   </main>
   <div class="fixed-plugin">
@@ -634,7 +713,7 @@ $rowsCount = $result->num_rows;
     function updateDropdownTextAndInput(text) {
       // 更新下拉菜單按鈕文字
       document.getElementById('dropdownMenuButton1').innerText = text;
-      event.preventDefault();
+      // event.preventDefault();
     }
     var win = navigator.platform.indexOf('Win') > -1;
     if (win && document.querySelector('#sidenav-scrollbar')) {
